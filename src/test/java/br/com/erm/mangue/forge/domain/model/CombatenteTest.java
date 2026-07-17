@@ -52,4 +52,66 @@ class CombatenteTest {
         Combatente c = novoCombatente(20);
         assertEquals(8, c.getAtributos().obterValor("agilidade"));
     }
+
+    @Test
+    void aplicarEfeitoAdicionaAListaDeEfeitosAtivos() {
+        Combatente c = novoCombatente(20);
+        EfeitoAtivo veneno = new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 2);
+
+        c.aplicarEfeito(veneno);
+
+        assertEquals(1, c.getEfeitosAtivos().size());
+    }
+
+    @Test
+    void processarInicioDoTurnoAplicaDanoPorTurno() {
+        Combatente c = novoCombatente(20);
+        c.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 2));
+
+        c.processarInicioDoTurno();
+
+        assertEquals(15, c.getHp().getAtual());
+    }
+
+    @Test
+    void processarInicioDoTurnoAplicaCuraPorTurno() {
+        Combatente c = novoCombatente(20);
+        c.aplicarDano(10);
+        c.aplicarEfeito(new EfeitoAtivo("Regeneracao", TipoEfeito.CURA_POR_TURNO, 4, 2));
+
+        c.processarInicioDoTurno();
+
+        assertEquals(14, c.getHp().getAtual());
+    }
+
+    @Test
+    void processarInicioDoTurnoDecrementaDuracaoDoEfeito() {
+        Combatente c = novoCombatente(20);
+        c.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 2));
+
+        c.processarInicioDoTurno();
+
+        assertEquals(1, c.getEfeitosAtivos().get(0).getDuracaoRestante());
+    }
+
+    @Test
+    void efeitoEhRemovidoDaListaQuandoExpira() {
+        Combatente c = novoCombatente(20);
+        c.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 1));
+
+        c.processarInicioDoTurno();
+
+        assertTrue(c.getEfeitosAtivos().isEmpty());
+    }
+
+    @Test
+    void multiplosEfeitosSaoTodosProcessadosNoMesmoTurno() {
+        Combatente c = novoCombatente(20);
+        c.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 2));
+        c.aplicarEfeito(new EfeitoAtivo("Regeneracao", TipoEfeito.CURA_POR_TURNO, 2, 2));
+
+        c.processarInicioDoTurno();
+
+        assertEquals(17, c.getHp().getAtual());
+    }
 }

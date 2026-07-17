@@ -1,13 +1,15 @@
 package br.com.erm.mangue.forge.domain.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Um participante de uma {@link Partida}.
  *
- * <p>{@code atributos} é fixo durante toda a partida; {@code hp} é o único
- * campo mutável, sempre substituído por uma nova instância imutável de
- * {@link PontosDeVida}.</p>
+ * <p>{@code atributos} é fixo durante toda a partida; {@code hp} e
+ * {@code efeitosAtivos} são os únicos campos mutáveis, sempre substituídos
+ * por novas instâncias imutáveis.</p>
  */
 public final class Combatente {
 
@@ -16,6 +18,7 @@ public final class Combatente {
     private final Time time;
     private final AtributosDinamicos atributos;
     private PontosDeVida hp;
+    private List<EfeitoAtivo> efeitosAtivos = List.of();
 
     public Combatente(String identificacao, Time time, AtributosDinamicos atributos, int hpMaximo) {
         this.id = UUID.randomUUID();
@@ -58,5 +61,39 @@ public final class Combatente {
     /** @return {@code true} se a vida atual for maior que zero. */
     public boolean estaVivo() {
         return !this.hp.estaMorto();
+    }
+
+    /** @param efeito efeito de dano/cura ao longo do tempo a aplicar a este combatente */
+    public void aplicarEfeito(EfeitoAtivo efeito) {
+        List<EfeitoAtivo> atualizados = new ArrayList<>(efeitosAtivos);
+        atualizados.add(efeito);
+        this.efeitosAtivos = List.copyOf(atualizados);
+    }
+
+    public List<EfeitoAtivo> getEfeitosAtivos() {
+        return efeitosAtivos;
+    }
+
+    /**
+     * Aplica o tick de cada efeito ativo (dano ou cura), decrementa suas
+     * durações e remove da lista os que expiraram.
+     */
+    public void processarInicioDoTurno() {
+        List<EfeitoAtivo> restantes = new ArrayList<>();
+        for (EfeitoAtivo efeito : efeitosAtivos) {
+            aplicarTick(efeito);
+            EfeitoAtivo decrementado = efeito.decrementarDuracao();
+            if (!decrementado.expirou()) {
+                restantes.add(decrementado);
+            }
+        }
+        this.efeitosAtivos = List.copyOf(restantes);
+    }
+
+    private void aplicarTick(EfeitoAtivo efeito) {
+        switch (efeito.getTipo()) {
+            case DANO_POR_TURNO -> aplicarDano(efeito.getValorPorTurno());
+            case CURA_POR_TURNO -> receberCura(efeito.getValorPorTurno());
+        }
     }
 }

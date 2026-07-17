@@ -1,0 +1,131 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-07-12T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.0.0",
+  "resources": [
+    {
+      "_id": "wrk_mangueforge",
+      "parentId": null,
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "name": "Mangue Forge API",
+      "description": "Motor de combate agnóstico — API REST (spec 2). Rode a aplicação Spring Boot localmente antes de testar.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_mangueforge_base",
+      "parentId": "wrk_mangueforge",
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080"
+      },
+      "dataPropertyOrder": {
+        "&": ["baseUrl"]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1752278400000,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_partidas",
+      "parentId": "wrk_mangueforge",
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "name": "Partidas",
+      "description": "Endpoints do PartidaController.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1752278400000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_criar_partida_d20",
+      "parentId": "fld_partidas",
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "url": "{{ _.baseUrl }}/api/partidas",
+      "name": "Criar Partida (motor D20)",
+      "description": "Cria uma partida com 2 combatentes usando o motor D20 (rola 1d20 + atributo vs. dificuldade). A resposta traz partidaId, o id de cada combatente e quem começa o turno — copie esses ids para usar na requisição 'Processar Ataque'.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"motor\": \"d20\",\n  \"dificuldade\": 12,\n  \"chaveIniciativa\": \"agilidade\",\n  \"combatentes\": [\n    {\"identificacao\": \"Heroi\", \"time\": \"herois\", \"atributos\": {\"forca\": 5, \"agilidade\": 9}, \"hpMaximo\": 20},\n    {\"identificacao\": \"Monstro\", \"time\": \"monstros\", \"atributos\": {\"forca\": 3, \"agilidade\": 4}, \"hpMaximo\": 15}\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "authentication": {},
+      "metaSortKey": -1752278400000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_criar_partida_percentual",
+      "parentId": "fld_partidas",
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "url": "{{ _.baseUrl }}/api/partidas",
+      "name": "Criar Partida (motor Percentual)",
+      "description": "Mesma criação de partida, mas usando o motor Percentual (rola 1d100 contra uma perícia). 'dificuldade' é ignorada para esse motor.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"motor\": \"percentual\",\n  \"chaveIniciativa\": \"agilidade\",\n  \"combatentes\": [\n    {\"identificacao\": \"Heroi\", \"time\": \"herois\", \"atributos\": {\"mira\": 60, \"agilidade\": 9}, \"hpMaximo\": 20},\n    {\"identificacao\": \"Monstro\", \"time\": \"monstros\", \"atributos\": {\"mira\": 40, \"agilidade\": 4}, \"hpMaximo\": 15}\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "authentication": {},
+      "metaSortKey": -1752278399000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_processar_ataque",
+      "parentId": "fld_partidas",
+      "modified": 1752278400000,
+      "created": 1752278400000,
+      "url": "{{ _.baseUrl }}/api/partidas/COLE_O_PARTIDA_ID_AQUI/ataques",
+      "name": "Processar Ataque",
+      "description": "Processa um ataque do combatente da vez contra um alvo. Substitua 'COLE_O_PARTIDA_ID_AQUI' na URL pelo partidaId retornado ao criar a partida, e 'COLE_O_ALVO_ID_AQUI' no corpo pelo id de um combatente que NÃO seja o combatenteDaVezId (você não pode atacar quem já está agindo). 'nomeDaAcao' deve ser uma chave presente nos atributos do atacante (ex.: 'forca' para D20, 'mira' para Percentual).",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"alvoId\": \"COLE_O_ALVO_ID_AQUI\",\n  \"nomeDaAcao\": \"forca\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "authentication": {},
+      "metaSortKey": -1752278398000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    }
+  ]
+}

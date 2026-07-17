@@ -4,6 +4,7 @@ import br.com.erm.mangue.forge.domain.exception.NenhumCombatenteVivoException;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PartidaTest {
@@ -68,5 +69,44 @@ class PartidaTest {
         unico.aplicarDano(999);
 
         assertThrows(NenhumCombatenteVivoException.class, partida::avancarTurno);
+    }
+
+    @Test
+    void buscarParticipanteRetornaCombatenteExistente() {
+        Combatente unico = combatenteComAgilidade("Unico", 5, 10);
+        Partida partida = new Partida(List.of(unico), "agilidade");
+
+        assertTrue(partida.buscarParticipante(unico.getId()).isPresent());
+    }
+
+    @Test
+    void buscarParticipanteRetornaVazioParaIdInexistente() {
+        Combatente unico = combatenteComAgilidade("Unico", 5, 10);
+        Partida partida = new Partida(List.of(unico), "agilidade");
+
+        assertTrue(partida.buscarParticipante(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void efeitoEProcessadoAutomaticamenteNoPrimeiroTurno() {
+        Combatente rapido = combatenteComAgilidade("Rapido", 9, 20);
+        rapido.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 5, 2));
+        Combatente lento = combatenteComAgilidade("Lento", 3, 10);
+
+        new Partida(List.of(lento, rapido), "agilidade");
+
+        assertEquals(15, rapido.getHp().getAtual());
+    }
+
+    @Test
+    void efeitoEProcessadoAutomaticamenteAoAvancarParaOProximoTurno() {
+        Combatente rapido = combatenteComAgilidade("Rapido", 9, 20);
+        Combatente lento = combatenteComAgilidade("Lento", 3, 10);
+        lento.aplicarEfeito(new EfeitoAtivo("Veneno", TipoEfeito.DANO_POR_TURNO, 4, 2));
+
+        Partida partida = new Partida(List.of(lento, rapido), "agilidade");
+        partida.avancarTurno(); // agora e' a vez do lento -- efeito dele deve ser processado
+
+        assertEquals(6, lento.getHp().getAtual());
     }
 }

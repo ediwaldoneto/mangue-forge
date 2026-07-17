@@ -5,6 +5,7 @@ import br.com.erm.mangue.forge.domain.turn.FilaDeIniciativa;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,6 +33,7 @@ public final class Partida {
         this.chaveIniciativa = chaveIniciativa;
         this.ordemDoTurno = new ArrayDeque<>();
         iniciarNovaRodada();
+        processarInicioDoTurnoAtual();
     }
 
     public UUID getId() {
@@ -54,6 +56,11 @@ public final class Partida {
         if (ordemDoTurno.isEmpty()) {
             iniciarNovaRodada();
         }
+        processarInicioDoTurnoAtual();
+    }
+
+    private void processarInicioDoTurnoAtual() {
+        combatenteDaVez().processarInicioDoTurno();
     }
 
     private void iniciarNovaRodada() {
@@ -63,6 +70,16 @@ public final class Partida {
         }
         ordemDoTurno.clear();
         ordenados.forEach(c -> ordemDoTurno.addLast(c.getId()));
+    }
+
+    /**
+     * @param id id do combatente procurado
+     * @return o participante correspondente, ou vazio se {@code id} não pertencer a esta partida
+     */
+    public Optional<Combatente> buscarParticipante(UUID id) {
+        return participantes.stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst();
     }
 
     private Combatente buscarPorId(UUID idProcurado) {

@@ -25,28 +25,39 @@ O Mangue Forge separa isso de propósito, usando conceitos de **Domain-Driven De
 ```
 br.com.erm.mangue.forge
 ├── domain
-│   ├── model        → Combatente, Time, AtributosDinamicos, PontosDeVida, Partida
-│   ├── resolution   → MotorDeResolucao (Strategy), ResultadoAcao, FonteAleatoria
+│   ├── model        → Combatente, Time, AtributosDinamicos, PontosDeVida,
+│   │                   EfeitoAtivo, TipoEfeito, Partida
+│   ├── resolution   → MotorDeResolucao (Strategy), ResultadoAcao,
+│   │                   FonteAleatoria, RandomFonteAleatoria
 │   ├── turn         → FilaDeIniciativa
 │   └── exception
 ├── application
-│   └── usecase      → IniciarPartidaUseCase, ProcessarAtaqueUseCase
-└── rules                       (plugins de regras — fora do domínio, dependem dele)
-    ├── d20          → MotorD20
-    └── percentual   → MotorPercentual
+│   ├── usecase      → IniciarPartidaUseCase, ProcessarAtaqueUseCase
+│   └── exception
+├── rules                        (plugins de regras — fora do domínio, dependem dele)
+│   ├── MotorDeResolucaoFactory
+│   ├── d20          → MotorD20
+│   └── percentual   → MotorPercentual
+├── infrastructure
+│   └── persistence  → PartidaAtiva, PartidaEmMemoriaRepository (em memória)
+└── presentation
+    └── api          → PartidaController, ApiExceptionHandler, dto/*
 ```
 
-**Regra de dependência:** `domain` nunca importa nada de `rules`. Qualquer sistema de jogo novo só precisa implementar a interface `MotorDeResolucao` — o motor de turnos, a vida e a ordenação de iniciativa continuam os mesmos.
+**Regra de dependência:** `domain` nunca importa nada de `rules`, `infrastructure` ou `presentation`. Qualquer sistema de jogo novo só precisa implementar a interface `MotorDeResolucao` — o motor de turnos, a vida e a ordenação de iniciativa continuam os mesmos.
 
 ### Peças-chave
 
 | Conceito | Papel |
 |---|---|
 | `AtributosDinamicos` | Atributos livres (`Map<String, Integer>`), sem nomes fixos — cada jogo define os seus. |
-| `Combatente` | Entidade com vida (`PontosDeVida`), atributos e time; único estado mutável é a vida. |
+| `Combatente` | Entidade com vida (`PontosDeVida`), atributos, time e efeitos ativos; único estado mutável é vida + efeitos. |
+| `EfeitoAtivo` | Dano/cura ao longo do tempo (veneno, regeneração), processado automaticamente a cada turno. |
 | `Partida` | Gerencia a fila de turnos por iniciativa; isolada — nenhuma partida compartilha estado com outra. |
 | `MotorDeResolucao` | O contrato de Strategy que cada sistema de jogo implementa para calcular sucesso/dano. |
 | `FonteAleatoria` | Abstrai a geração de números aleatórios, permitindo testes 100% determinísticos. |
+
+Documentação completa, com todos os conceitos e exemplos: [`docs/motor-de-combate.md`](docs/motor-de-combate.md).
 
 ## Exemplo
 
@@ -68,6 +79,14 @@ ResultadoAcao resultado = ataque.executar(partida, monstro, "forca");
 
 Trocar `MotorD20` por `MotorPercentual` não exige nenhuma outra mudança — é essa a prova em código de que o motor é agnóstico.
 
+## Testando a API manualmente
+
+Uma collection do [Insomnia](https://insomnia.rest/) está em
+[`docs/insomnia/mangue-forge-insomnia.json`](docs/insomnia/mangue-forge-insomnia.json),
+com exemplos prontos para criar uma partida (D20 e Percentual) e processar um
+ataque. Basta importar o arquivo (Insomnia → *Import* → *From File*) e rodar a
+aplicação localmente (`./mvnw spring-boot:run`) antes de testar.
+
 ## Rodando os testes
 
 ```bash
@@ -83,12 +102,15 @@ Todo o `domain` é testado com JUnit puro (sem contexto Spring) e os motores de 
 - Fila de turnos por iniciativa, com exclusão automática de combatentes derrotados.
 - Dois motores de regra de exemplo (D20 e Percentual), provando o Strategy na prática.
 - Casos de uso para iniciar uma partida e processar um ataque.
+- Buffs/debuffs: efeitos de dano/cura ao longo do tempo, processados automaticamente a cada turno.
+- API REST (`POST /api/partidas`, `POST /api/partidas/{id}/ataques`), com repositório em memória e o cliente escolhendo o motor de regras no request.
 
 ## Fora de escopo (por enquanto)
 
-- Buffs/debuffs e efeitos ao longo do tempo.
-- Persistência (banco de dados).
-- Exposição via API REST ou CLI.
+- Modificadores temporários de atributo (buff/debuff de força, agilidade, etc.).
+- Exposição de efeitos (buffs/debuffs) via API REST.
+- Persistência em banco de dados (hoje é só em memória).
+- CLI de demonstração.
 - Mecanismos reais de concorrência — o desenho atual já evita estado global mutável, preparando o terreno para isso.
 
 
