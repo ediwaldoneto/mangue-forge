@@ -21,7 +21,7 @@
       "created": 1752278400000,
       "name": "Base Environment",
       "data": {
-        "baseUrl": "http://localhost:8080"
+        "baseUrl": "http://localhost:8080/api"
       },
       "dataPropertyOrder": {
         "&": ["baseUrl"]
@@ -48,7 +48,7 @@
       "parentId": "fld_partidas",
       "modified": 1752278400000,
       "created": 1752278400000,
-      "url": "{{ _.baseUrl }}/api/partidas",
+      "url": "{{ _.baseUrl }}/partidas",
       "name": "Criar Partida (motor D20)",
       "description": "Cria uma partida com 2 combatentes usando o motor D20 (rola 1d20 + atributo vs. dificuldade). A resposta traz partidaId, o id de cada combatente e quem começa o turno — copie esses ids para usar na requisição 'Processar Ataque'.",
       "method": "POST",
@@ -76,7 +76,7 @@
       "parentId": "fld_partidas",
       "modified": 1752278400000,
       "created": 1752278400000,
-      "url": "{{ _.baseUrl }}/api/partidas",
+      "url": "{{ _.baseUrl }}/partidas",
       "name": "Criar Partida (motor Percentual)",
       "description": "Mesma criação de partida, mas usando o motor Percentual (rola 1d100 contra uma perícia). 'dificuldade' é ignorada para esse motor.",
       "method": "POST",
@@ -104,7 +104,7 @@
       "parentId": "fld_partidas",
       "modified": 1752278400000,
       "created": 1752278400000,
-      "url": "{{ _.baseUrl }}/api/partidas/COLE_O_PARTIDA_ID_AQUI/ataques",
+      "url": "{{ _.baseUrl }}/partidas/COLE_O_PARTIDA_ID_AQUI/ataques",
       "name": "Processar Ataque",
       "description": "Processa um ataque do combatente da vez contra um alvo. Substitua 'COLE_O_PARTIDA_ID_AQUI' na URL pelo partidaId retornado ao criar a partida, e 'COLE_O_ALVO_ID_AQUI' no corpo pelo id de um combatente que NÃO seja o combatenteDaVezId (você não pode atacar quem já está agindo). 'nomeDaAcao' deve ser uma chave presente nos atributos do atacante (ex.: 'forca' para D20, 'mira' para Percentual).",
       "method": "POST",
